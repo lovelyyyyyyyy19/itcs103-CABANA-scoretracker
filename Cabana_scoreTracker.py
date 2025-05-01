@@ -1,0 +1,63 @@
+import openpyxl
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
+FILENAME = "student_scores.xlsx"
+
+# Create workbook 
+def initialize_workbook():
+    try:
+        wb = openpyxl.load_workbook(FILENAME)
+        ws = wb.active
+    except FileNotFoundError:
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Name", "Score", "Remarks"])
+        ws["A1"].font = ws["B1"].font = ws["C1"].font = Font(bold=True)
+        wb.save(FILENAME)
+    return wb, ws
+
+# Add student score
+def add_student_score(name, score):
+    wb, ws = initialize_workbook()
+    remark = "Pass" if score >= 75 else "Fail"
+    ws.append([name, score, remark])
+    wb.save(FILENAME)
+
+# Show all records
+def display_all_records():
+    wb, ws = initialize_workbook()
+    print("\nAll Student Records:")
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        print(f"Name: {row[0]}, Score: {row[1]}, Remarks: {row[2]}")
+
+# Optional: Add average 
+def add_average_score():
+    wb, ws = initialize_workbook()
+    max_row = ws.max_row
+    if max_row > 1:
+        
+        ws.insert_rows(max_row + 1, amount=2)
+        avg_formula = f"=AVERAGE(B2:B{max_row})"
+        ws[f"A{max_row + 3}"] = "Average"
+        ws[f"B{max_row + 3}"] = avg_formula
+        wb.save(FILENAME)
+
+# Main logic
+def main():
+    while True:
+        name = input("Enter student name (or 'papasa ako' to stop): ")
+        if name.lower() == "papasa ako":
+            break
+        try:
+            score = float(input("Enter student score: "))
+            add_student_score(name, score)
+        except ValueError:
+            print("Invalid score. Please enter a number.")
+    
+    display_all_records()
+    add_average_score()
+    print("Data saved successfully in 'student_scores.xlsx'.")
+
+if __name__ == "__main__":
+    main()
